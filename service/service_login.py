@@ -6,9 +6,10 @@ import mysql.connector
 from connection import py_conn
 from exceptions.internal import InternalServer
 from exceptions.unauthorized import Unauthorized
+from security.security import encode, save_data_access
 
 
-def login(obj):
+def login(obj,request):
     try:
 
         conn   = py_conn.new_connection()
@@ -22,20 +23,21 @@ def login(obj):
         cursor = conn.cursor()
         cursor.execute(sql,values)
         rs = cursor.fetchall()
+        user = {}
 
-        user = {
-            "email": "",
-            "nome": ""
-        }
         if(len(rs) == 0):
             raise Unauthorized("user or password incorect")
+        id_user = ''
         for r in rs:
-            user["id"] = r[0]
+            id_user = r[0]
             user["nome"] = r[1]
 
+        user["token"] = encode()
+
+        save_data_access(user,request,id_user)
         return json.dumps(user)
     except mysql.connector.Error as err:
-        InternalServer(err.msg)
+        raise InternalServer(err.msg)
 
 
 def create_user(obj):
@@ -56,4 +58,4 @@ def create_user(obj):
 
         return "ok"
     except mysql.connector.Error as err:
-        InternalServer(err.msg)
+        raise InternalServer(err.msg)
