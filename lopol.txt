@@ -1,0 +1,7 @@
+DROP USER 'adonais1_master'@'localhost';
+
+create user adonais1_master@localhost
+    identified by '553322@@##';
+
+GRANT ALL PRIVILEGES ON adonais1_activity_organizer.* TO 'adonais1_master'@'localhost';
+FLUSH PRIVILEGES;
