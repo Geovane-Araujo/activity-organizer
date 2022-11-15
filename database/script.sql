@@ -6,10 +6,14 @@ CREATE TABLE IF NOT EXISTS users(
     status smallint
 );
 
+alter table users
+    add constraint uk_email
+        unique (email);
+
 CREATE TABLE IF NOT EXISTS activity(
     id CHAR(36) primary key,
-    id_user CHAR(36),
-    data timestamp,
+    c CHAR(36),
+    data datetime,
     title varchar(70),
     description text,
     status smallint
