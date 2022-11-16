@@ -102,3 +102,21 @@ def get_by_id(request):
         return objr
     except mysql.connector.Error as err:
         raise InternalServer(err.msg)
+
+def delete(request, id):
+    try:
+
+        conn = py_conn.new_connection()
+
+
+        sql = "DELETE FROM activity where id = %s"
+        values = (id,)
+
+        cursor = conn.cursor()
+        cursor.execute(sql, values)
+        conn.commit()
+
+
+        return "ok"
+    except mysql.connector.Error as err:
+        raise InternalServer(err.msg)
