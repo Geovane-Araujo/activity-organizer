@@ -23,7 +23,7 @@ def save(request):
         id = obj.get("id")
 
         sql = ""
-        if(id == None):
+        if(id == None or id == ''):
             sql = f"insert into activity(id,id_user,data, title, description, status) values(%s,%s,%s,%s,%s,%s)"
             id = str(uuid.uuid4())
             values = (id, id_user, data, title, description, status)
@@ -50,8 +50,8 @@ def get_all(request):
         data = obj.get("data")
         data = datetime.strptime(data,'%Y-%m-%d %H:%M:%S.%f').strftime('%Y-%m-%d')
 
-        sql = "SELECT * FROM activity where data between %s and %s and id_user = %s"
-        values = (str(data) + "00:00:00",str(data) + " 23:59:59",id_user)
+        sql = "SELECT * FROM activity where data between %s and %s and id_user = %s order by data asc"
+        values = (str(data) + " 00:00:00",str(data) + " 23:59:59",id_user)
 
         cursor = conn.cursor()
         cursor.execute(sql, values)
