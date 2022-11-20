@@ -64,7 +64,7 @@ def get_all(request):
             objr["id_user"] = r[1]
             objr["data"] = r[2].strftime('%Y-%m-%d %H:%M:%S.%f')
             objr["title"] = r[3]
-            objr["description"] = r[4]
+            objr["description"] = r[4] if len(r[4]) < 50 else r[4][0:50] + "..."
             objr["status"] = r[5]
             all_obj.append(objr)
 
