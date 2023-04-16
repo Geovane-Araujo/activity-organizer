@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 
-from service import service_login, service_activity
+from service import service_login, service_activity, service_note
 
 from exceptions.exception import hubExcept
 
@@ -30,8 +30,24 @@ def activity_by_id():
     return service_activity.get_by_id(request)
 
 @app.route('/deleteById/<id>',methods=['GET'])
-def delete(id):
+def activity_delete(id):
     return service_activity.delete(request, id)
+
+@app.route('/noteSave',methods=['POST'])
+def note_save():
+    return service_note.save(request)
+
+@app.route('/noteAll',methods=['POST','GET'])
+def note_all():
+    return service_note.get_all(request)
+
+@app.route('/noteById',methods=['POST','GET'])
+def note_by_id():
+    return service_note.get_by_id(request)
+
+@app.route('/noteDeleteById/<id>',methods=['GET'])
+def note_delete(id):
+    return service_note.delete(request, id)
 
 if __name__ == '__main__':
     app.run()

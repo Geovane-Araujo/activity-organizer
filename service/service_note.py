@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime
+import datetime
 
 import mysql
 
@@ -13,23 +13,17 @@ def save(request):
     try:
         obj = request.get_json()
         id_user = verify_session(request)
-
         conn = py_conn.new_connection()
-
-        data = obj.get("data")
-        title = obj.get("title")
-        description = obj.get("description")
-        status = obj.get("status")
+        currentDate = datetime.datetime.now()
         id = obj.get("id")
-
         sql = ""
         if(id == None or id == ''):
-            sql = f"insert into activity(id,id_user,data, title, description, status) values(%s,%s,%s,%s,%s,%s)"
+            sql = f"insert into note(id,id_user,title, description, created_date) values(%s,%s,%s,%s,%s)"
             id = str(uuid.uuid4())
-            values = (id, id_user, data, title, description, status)
+            values = (id, id_user, obj.get("title"), obj.get("description"), currentDate.strftime("%Y-%m-%d %H:%M:%S"))
         else:
-            sql = f"UPDATE activity set data=%s, title=%s, description=%s, status=%s where id = %s"
-            values = (data, title, description, status,id)
+            sql = f"UPDATE note set title=%s, description=%s where id = %s"
+            values = (obj.get("title"), obj.get("description"),id)
 
         cursor = conn.cursor()
         cursor.execute(sql, values)
@@ -47,28 +41,23 @@ def get_all(request):
 
         conn = py_conn.new_connection()
 
-        data_start = obj.get("dataStart")
-        data_start = datetime.strptime(data_start,'%Y-%m-%d %H:%M:%S.%f').strftime('%Y-%m-%d')
+        filter = obj.get('filter')
+        if(filter == None):
+            filter = ''
+        else:
+            filter = f"AND title like \'%"+filter+"%\'"
 
-        data_end = obj.get("dataEnd")
-        data_end = datetime.strptime(data_end, '%Y-%m-%d %H:%M:%S.%f').strftime('%Y-%m-%d')
-
-        sql = "SELECT * FROM activity where data between %s and %s and id_user = %s order by data asc"
-        values = (str(data_start) + " 00:00:00",str(data_end) + " 23:59:59",id_user)
-
+        sql = f"SELECT id, title, created_date FROM note where id_user = '{id_user}' {filter} order by title asc"
         cursor = conn.cursor()
-        cursor.execute(sql, values)
+        cursor.execute(sql)
         rs = cursor.fetchall()
         all_obj = []
 
         for r in rs:
             objr = {}
             objr["id"] = r[0]
-            objr["id_user"] = r[1]
-            objr["data"] = r[2].strftime('%Y-%m-%d %H:%M:%S.%f')
-            objr["title"] = r[3]
-            objr["description"] = r[4] if len(r[4]) < 50 else r[4][0:50] + "..."
-            objr["status"] = r[5]
+            objr["title"] = r[1]
+            objr["created_date"] = r[2].strftime('%d/%m/%Y %H:%M:%S')
             all_obj.append(objr)
 
         return all_obj
@@ -85,22 +74,18 @@ def get_by_id(request):
         id = obj.get("id")
 
 
-        sql = "SELECT * FROM activity where id = %s and id_user = %s"
+        sql = "SELECT id,title, description,created_date FROM note where id = %s and id_user = %s"
         values = (id,id_user)
 
         cursor = conn.cursor()
         cursor.execute(sql, values)
         rs = cursor.fetchone()
-
-
         objr = {}
-        objr["id"] = rs[0]
-        objr["id_user"] = rs[1]
-        objr["data"] = rs[2].strftime('%Y-%m-%d %H:%M:%S.%f')
-        objr["title"] = rs[3]
-        objr["description"] = rs[4]
-        objr["status"] = rs[5]
-
+        if(len(rs) > 0):
+            objr["id"] = rs[0]
+            objr["title"] = rs[1]
+            objr["description"] = rs[2]
+            objr["created_date"] = rs[3]
 
         return objr
     except mysql.connector.Error as err:
@@ -111,15 +96,12 @@ def delete(request, id):
 
         conn = py_conn.new_connection()
 
-
-        sql = "DELETE FROM activity where id = %s"
+        sql = "DELETE FROM note where id = %s"
         values = (id,)
 
         cursor = conn.cursor()
         cursor.execute(sql, values)
         conn.commit()
-
-
         return "ok"
     except mysql.connector.Error as err:
         raise InternalServer(err.msg)

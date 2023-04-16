@@ -12,9 +12,17 @@ alter table users
 
 CREATE TABLE IF NOT EXISTS activity(
     id CHAR(36) primary key,
-    c CHAR(36),
+    id_user CHAR(36),
     data datetime,
     title varchar(70),
     description text,
     status smallint
+);
+
+CREATE TABLE IF NOT EXISTS note(
+    id CHAR(36) primary key,
+    id_user CHAR(36),
+    title varchar(70),
+    description text,
+    created_date datetime
 );
